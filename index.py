@@ -15,9 +15,9 @@ import logging
 import time
 
 logging.basicConfig(
-    filename='teeTimeProject/logfile.log', 
+    filename='teeTimeProject/logfile.log',
     level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s', 
+    format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
@@ -25,19 +25,39 @@ logging.basicConfig(
 logging.getLogger().setLevel(logging.WARNING)
 logging.getLogger("selenium").setLevel(logging.WARNING)
 
-# Configuration variables
-user_name = 'PartlowS' 
-user_password = 'xfu*fyb6RBC_cyx8mcg' 
-user_alt_attribute = 'Scott Partlow' 
-preferred_timeslot = '06:00' # First Avalaible
-preferred_courses = ['North', 'Original Front to North Front', 'Northback'] # In Order - first gets priority
+
+# Initialize User class
+class User:
+    def __init__(self, user_name: str, user_password: str, user_alt_attribute: str, preferred_timeslot: str, preferred_courses: list):
+        self.user_name = user_name
+        self.user_password = user_password  # Dont keep it this way
+        self.user_alt_attribute = user_alt_attribute
+        self.preferred_timeslot = preferred_timeslot
+        self.preferred_courses = preferred_courses
+        self.multiple_courses = multiple_courses
+        self.date_xpath = date_xpath
+
+
+current_user = User(user_name='PartlowS',
+                    user_password='xfu*fyb6RBC_cyx8mcg',
+                    user_alt_attribute='Scott Partlow',
+                    preferred_timeslot='06:00',
+                    preferred_courses=['North', 'Original Front to North Front',
+                                       'Northback'])  # In Order - first gets priority !important
+
+# Configuration variables user_name = 'PartlowS'
+# user_password = 'xfu*fyb6RBC_cyx8mcg'
+# user_alt_attribute = 'Scott
+# Partlow' preferred_timeslot = '06:00'  # First Available
+# preferred_courses = ['North', 'Original Front to North
+# Front', 'Northback']  # In Order - first gets priority !important
 
 # -todo- Edit get_multiple_courses to handle different multiple course choices for different days
 # multiple_courses = get_multiple_courses()
 multiple_courses = 1
 
 # -Optional- select a day to run the script on by typing a day (string) as a parameter for this function
-date_xpath = get_target_date_xpath() 
+date_xpath = get_target_date_xpath()
 
 # Set up the driver
 # chrome_options = Options()
@@ -52,11 +72,11 @@ driver = webdriver.Chrome()
 driver.get('https://www.onioncreekclub.com/user/login')
 
 # Find the email and password fields, enter the credentials
-name_elem = driver.find_element(By.ID, 'edit-name--2') 
-password_elem = driver.find_element(By.ID, 'edit-pass--2') 
+name_elem = driver.find_element(By.ID, 'edit-name--2')
+password_elem = driver.find_element(By.ID, 'edit-pass--2')
 
-name_elem.send_keys(user_name)
-password_elem.send_keys(user_password)
+name_elem.send_keys(current_user.user_name)
+password_elem.send_keys(current_user.user_password)
 password_elem.send_keys(Keys.RETURN)
 
 wait = WebDriverWait(driver, 120)
@@ -67,13 +87,12 @@ print(f"[DEBUG] Original window title: {driver.title}")
 
 # Find the button by its text and href pattern and click it
 button_to_click = wait.until(
-    EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/user/')][contains(@href, '/foretees/login')][contains(text(), 'Book a Tee Time Now')]"))
+    EC.presence_of_element_located((By.XPATH,
+                                    "//a[contains(@href, '/user/')][contains(@href, '/foretees/login')][contains(text(), 'Book a Tee Time Now')]"))
 )
 button_to_click.click()
 
 wait.until(EC.number_of_windows_to_be(2))
-
-# list comprehension
 
 for window_handle in driver.window_handles:
     if window_handle != original_window:
@@ -85,10 +104,9 @@ print(f"[DEBUG] After switch window title: {driver.title}")
 # Switch to the new tab
 wait.until(EC.title_is("Member Identification"))
 
-
 # Wait for the button with the specified alt attribute and click it
 button_to_click = wait.until(
-    EC.presence_of_element_located((By.XPATH, f"//a[@alt='{user_alt_attribute}'][text()='{user_alt_attribute}']"))
+    EC.presence_of_element_located((By.XPATH, f"//a[@alt='{current_user.user_alt_attribute}'][text()='{current_user.user_alt_attribute}']"))
 )
 button_to_click.click()
 
@@ -110,6 +128,7 @@ day_to_click.click()
 slot_found = False
 start_clicking = False
 
+
 # This function contains your logic for locating the time slots.
 # It's separate so you can call it for both preferred and secondary courses.
 def search_for_time_slot(course_name):
@@ -118,12 +137,13 @@ def search_for_time_slot(course_name):
 
     try:
         rows = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.XPATH, f"//div[contains(@class, 'rwdTr') and div[@class='sN rwdTd' and text()='{course_name}']]"))
+            EC.presence_of_all_elements_located(
+                (By.XPATH, f"//div[contains(@class, 'rwdTr') and div[@class='sN rwdTd' and text()='{course_name}']]"))
         )
     except TimeoutException:
-        print(f"No rows found for course: {course_name}") 
-        return False  
-    
+        print(f"No rows found for course: {course_name}")
+        return False
+
     for row in rows:
         try:
             # Extract the time slot from the <a> tag or the <div> tag
@@ -134,7 +154,7 @@ def search_for_time_slot(course_name):
 
             time_text = convert_to_24_hour_format(time_element.text.strip())
 
-            if time_text < preferred_timeslot:
+            if time_text < current_user.preferred_timeslot:
                 continue
 
             if multiple_courses > 1:
@@ -142,7 +162,9 @@ def search_for_time_slot(course_name):
                 Select(select_element).select_by_value(str(multiple_courses))
                 WebDriverWait(driver, 10).until(EC.staleness_of(time_element))
                 return True  # Exit the loop as you've selected the required option and the page might have navigated
-            elif isinstance(time_element, webdriver.remote.webelement.WebElement) and "teetime_button" in time_element.get_attribute("class"):
+            elif isinstance(time_element,
+                            webdriver.remote.webelement.WebElement) and "teetime_button" in time_element.get_attribute(
+                    "class"):
                 time_element.click()
                 return True  # Slot was found and clicked
 
@@ -153,19 +175,22 @@ def search_for_time_slot(course_name):
             # Handle the stale element exception, you can log it or wait and then continue
             time.sleep(2)  # Wait for a short period before retrying
             continue
-    
+
     return False
+
 
 selected_course = None
 
-for course in preferred_courses:
+for course in current_user.preferred_courses:
     if search_for_time_slot(course):
         selected_course = course
         print(f'Selected course: {selected_course}')
         # break
     else:  # This block executes if the loop completes without a break
-        print(f"No available slots found in either the '{preferred_courses[0]}' or '{preferred_courses[1]}' course rows.")
-        logging.warning(f"No available slots found in either the '{preferred_courses[0]}' or '{preferred_courses[1]}' course rows.")
+        print(
+            f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows.")
+        logging.warning(
+            f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows.")
         input("Press Return to exit...")
         exit(0)
 
@@ -201,10 +226,12 @@ if len(player_types) >= ((4 * multiple_courses) - 1):
     # Step 4: If the check passes, locate the submit button and click it
     try:
         submit_button = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//a[@class='submit_request_button' and text()='Submit Request']"))
+            EC.presence_of_element_located(
+                (By.XPATH, "//a[@class='submit_request_button' and text()='Submit Request']"))
         )
-        print(f"Successfully Booked the {time_text} time slot at the {selected_course} course for {user_alt_attribute}")
-        logging.warning(f"Successfully Booked the {time_text} time slot at the {selected_course} course for {user_alt_attribute}")
+        print(f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
+        logging.warning(
+            f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         input("Ready to click Submit button")
         submit_button.click()
         exit(0)
@@ -214,6 +241,3 @@ if len(player_types) >= ((4 * multiple_courses) - 1):
         exit(0)
     except Exception as e:
         print(e)
-
-
-
