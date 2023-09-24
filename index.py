@@ -11,6 +11,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from target_date import get_target_date_xpath
 from select_time import convert_to_24_hour_format
 from course_config import get_multiple_courses
+from observe_clock import observe_clock_and_act
 import logging
 import time
 
@@ -28,14 +29,13 @@ logging.getLogger("selenium").setLevel(logging.WARNING)
 
 # Initialize User class
 class User:
-    def __init__(self, user_name: str, user_password: str, user_alt_attribute: str, preferred_timeslot: str, preferred_courses: list):
+    def __init__(self, user_name: str, user_password: str, user_alt_attribute: str, preferred_timeslot: str, preferred_courses: list, multiple_courses: int):
         self.user_name = user_name
         self.user_password = user_password  # Dont keep it this way
         self.user_alt_attribute = user_alt_attribute
         self.preferred_timeslot = preferred_timeslot
         self.preferred_courses = preferred_courses
         self.multiple_courses = multiple_courses
-        self.date_xpath = date_xpath
 
 
 current_user = User(user_name='PartlowS',
@@ -43,7 +43,8 @@ current_user = User(user_name='PartlowS',
                     user_alt_attribute='Scott Partlow',
                     preferred_timeslot='06:00',
                     preferred_courses=['North', 'Original Front to North Front',
-                                       'Northback'])  # In Order - first gets priority !important
+                                       'Northback'],
+                    multiple_courses = 1)  # In Order - first gets priority
 
 # Configuration variables user_name = 'PartlowS'
 # user_password = 'xfu*fyb6RBC_cyx8mcg'
@@ -54,7 +55,7 @@ current_user = User(user_name='PartlowS',
 
 # -todo- Edit get_multiple_courses to handle different multiple course choices for different days
 # multiple_courses = get_multiple_courses()
-multiple_courses = 1
+# multiple_courses = 1
 
 # -Optional- select a day to run the script on by typing a day (string) as a parameter for this function
 date_xpath = get_target_date_xpath()
@@ -118,6 +119,11 @@ driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 # TODO - Watch the clock and refresh the calendar when the clock says 7:00. 
 # -    - Repeatedly refresh the calendar until the target date is clickable, then click it
 
+try:
+    observe_clock_and_act(driver, "4:30:00 PM")
+finally: 
+    input('Press enter to continue')
+
 # Find the date on the calendar and click it
 print(date_xpath)
 day_to_click = WebDriverWait(driver, 10).until(
@@ -157,9 +163,9 @@ def search_for_time_slot(course_name):
             if time_text < current_user.preferred_timeslot:
                 continue
 
-            if multiple_courses > 1:
+            if current_user.multiple_courses > 1:
                 select_element = row.find_element(By.XPATH, ".//div[@class='sS rwdTd']/select")
-                Select(select_element).select_by_value(str(multiple_courses))
+                Select(select_element).select_by_value(str(current_user.multiple_courses))
                 WebDriverWait(driver, 10).until(EC.staleness_of(time_element))
                 return True  # Exit the loop as you've selected the required option and the page might have navigated
             elif isinstance(time_element,
@@ -194,7 +200,7 @@ for course in current_user.preferred_courses:
         input("Press Return to exit...")
         exit(0)
 
-if multiple_courses > 1:
+if current_user.multiple_courses > 1:
     continue_button = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, "//button[span[text()='Continue']]"))
     )
@@ -213,16 +219,16 @@ button_to_click = WebDriverWait(driver, 10).until(
     EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'ftMs-listItem')][span[text()='X']]"))
 )
 
-print(f'X button found. Attempting to click {((4 * multiple_courses) - 1)} times...')
+print(f'X button found. Attempting to click {((4 * current_user.multiple_courses) - 1)} times...')
 
 # Step 2: Click it three times
-for _ in range((4 * multiple_courses) - 1):
+for _ in range((4 * current_user.multiple_courses) - 1):
     driver.execute_script("arguments[0].click();", button_to_click)
 
 # Step 3: Check for the existence of at least three <div class="playerType">X</div>
 player_types = driver.find_elements(By.XPATH, "//div[@class='playerType' and text()='X']")
 
-if len(player_types) >= ((4 * multiple_courses) - 1):
+if len(player_types) >= ((4 * current_user.multiple_courses) - 1):
     # Step 4: If the check passes, locate the submit button and click it
     try:
         submit_button = WebDriverWait(driver, 10).until(
