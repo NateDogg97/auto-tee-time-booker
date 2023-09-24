@@ -30,7 +30,7 @@ user_name = 'PartlowS'
 user_password = 'xfu*fyb6RBC_cyx8mcg' 
 user_alt_attribute = 'Scott Partlow' 
 preferred_timeslot = '06:00' # First Avalaible
-preferred_courses = ['North', 'Original Front to North Front', 'Northback'] # In Order - first gets priority !important
+preferred_courses = ['North', 'Original Front to North Front', 'Northback'] # In Order - first gets priority
 
 # -todo- Edit get_multiple_courses to handle different multiple course choices for different days
 # multiple_courses = get_multiple_courses()
@@ -42,7 +42,7 @@ date_xpath = get_target_date_xpath()
 # Set up the driver
 # chrome_options = Options()
 # chrome_options.add_argument("--headless")
-# chrome_options.add_argument('--window-size=1920x1080')
+# chrome_options.add_argument("--window-size=1920x1080")
 # chrome_options.add_argument("--no-sandbox")
 # chrome_options.add_argument("--disable-dev-shm-usage")
 # driver = webdriver.Chrome(options=chrome_options)
@@ -96,6 +96,9 @@ wait.until(EC.title_is("Welcome to ForeTees"))
 
 # Navigate to the 'Member_select' page
 driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
+
+# TODO - Watch the clock and refresh the calendar when the clock says 7:00. 
+# -    - Repeatedly refresh the calendar until the target date is clickable, then click it
 
 # Find the date on the calendar and click it
 print(date_xpath)
