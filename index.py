@@ -120,7 +120,7 @@ driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 # -    - Repeatedly refresh the calendar until the target date is clickable, then click it
 
 try:
-    observe_clock_and_act(driver, "4:30:00 PM")
+    observe_clock_and_act(driver, "7:00:00 AM")
 finally: 
     input('Press enter to continue')
 
@@ -133,7 +133,6 @@ day_to_click.click()
 
 slot_found = False
 start_clicking = False
-
 
 # This function contains your logic for locating the time slots.
 # It's separate so you can call it for both preferred and secondary courses.
