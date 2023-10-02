@@ -1,6 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import os
 import time
 
@@ -44,7 +45,8 @@ def observe_clock_and_act(driver, server_time, date_xpath):
 
                 try:
                     refresh_calendar(driver)
-                    print(f"Calendar refreshed at {currentTime}")
+                    # Wait 1 second for calendars to refresh
+                    time.sleep(1)
 
                 except Exception as e:
                     print(f"{type(e).__name__}: {str(e)}")
@@ -59,18 +61,11 @@ def observe_clock_and_act(driver, server_time, date_xpath):
                         print(f"Date button clicked at {currentTime}")
                         break  # Break out of the inner loop
 
-                    except Exception:
+                    except TimeoutException:
                         try:
                             refresh_calendar(driver)
-                            print(f"Page refreshed at {currentTime}")
                         except Exception as e:
                             print(f"{type(e).__name__}: {str(e)}")
-
-                        # Sleep for 1 second before the next refresh
-                        time.sleep(1)
-
-                    # Sleep for 2 seconds before the next refresh
-                    time.sleep(1)
 
                 break
 

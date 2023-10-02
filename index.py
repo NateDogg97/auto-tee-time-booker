@@ -29,12 +29,13 @@ logging.getLogger("selenium").setLevel(logging.WARNING)
 
 # Initialize User class
 class User:
-    def __init__(self, user_name: str, user_password: str, user_alt_attribute: str, preferred_timeslot: str, preferred_courses: list, multiple_courses: int):
+    def __init__(self, user_name: str, user_password: str, user_alt_attribute: str, preferred_timeslot: str, preferred_courses: list, slots_available: int, multiple_courses: int):
         self.user_name = user_name
         self.user_password = user_password  # Dont keep it this way
         self.user_alt_attribute = user_alt_attribute
         self.preferred_timeslot = preferred_timeslot
         self.preferred_courses = preferred_courses
+        self.slots_available = slots_available
         self.multiple_courses = multiple_courses
 
 
@@ -44,14 +45,8 @@ current_user = User(user_name='PartlowS',
                     preferred_timeslot='06:00',  # Earliest Avaiable
                     preferred_courses=['North', 'Original Front to North Front',
                                        'Northback'],  # In Order - first gets priority
+                    slots_available=4,
                     multiple_courses=1)
-
-# Configuration variables user_name = 'PartlowS'
-# user_password = 'xfu*fyb6RBC_cyx8mcg'
-# user_alt_attribute = 'Scott
-# Partlow' preferred_timeslot = '06:00'  # First Available
-# preferred_courses = ['North', 'Original Front to North
-# Front', 'Northback']  # In Order - first gets priority !important
 
 # -todo- Edit get_multiple_courses to handle different multiple course choices for different days
 # multiple_courses = get_multiple_courses()
@@ -118,18 +113,10 @@ wait.until(EC.title_is("Welcome to ForeTees"))
 driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 
 try:
-    server_time = "4:34:00 PM"  # Testing
+    server_time = "7:44:00 PM"  # Testing
     observe_clock_and_act(driver, server_time, date_xpath)
 finally:
     print(f"Clicked Date: {date_xpath}")
-
-
-# Find the date on the calendar and click it
-# print(date_xpath)
-# day_to_click = WebDriverWait(driver, 10).until(
-#     EC.presence_of_element_located((By.XPATH, date_xpath))
-# )
-# day_to_click.click()
 
 slot_found = False
 start_clicking = False
@@ -138,14 +125,14 @@ start_clicking = False
 # It's separate so you can call it for both preferred and secondary courses.
 
 
-def search_for_time_slot(course_name):
+def search_for_time_slot(course_name, slots_available):
     global start_clicking
     global time_text
 
     try:
         rows = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located(
-                (By.XPATH, f"//div[contains(@class, 'rwdTr') and div[@class='sN rwdTd' and text()='{course_name}']]"))
+                (By.XPATH, f"//div[contains(@class, 'rwdTr') and .//div[@class='sN rwdTd' and text()='{course_name}'] and .//div[contains(@class, 'slotCount') and number(translate(text(), translate(text(), '0123456789', ''), '')) >= {slots_available}]]"))
         )
     except TimeoutException:
         print(f"No rows found for course: {course_name}")
@@ -193,10 +180,10 @@ def search_for_time_slot(course_name):
 selected_course = None
 
 for course in current_user.preferred_courses:
-    if search_for_time_slot(course):
+    if search_for_time_slot(course, current_user.slots_available):
         selected_course = course
         print(f'Selected course: {selected_course}')
-        # break
+        break
     else:  # This block executes if the loop completes without a break
         print(
             f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows.")

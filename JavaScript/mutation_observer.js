@@ -4,13 +4,6 @@ console.log("Setting up observer for: ", observedElement);
 
 function convertTo24HourFormat(timeString) {
   console.log("timeString:", timeString); // Debugging line to check the actual content of timeString.
-  let match = timeString.match(/(\d+):(\d+):(\d+) (AM|PM)/);
-  if (match !== null) {
-    let [_, hours, minutes, seconds, meridian] = match;
-    // Continue with the rest of your logic.
-  } else {
-    console.error("Invalid time format:", timeString);
-  }
 
   let [_, hours, minutes, seconds, meridian] = timeString.match(
     /(\d+):(\d+):(\d+) (AM|PM)/
@@ -28,7 +21,6 @@ function isTimePastOrEqual(currentTimeString, serverTimeString) {
 
 let observer = new MutationObserver((mutations) => {
   let currentTime = observedElement.textContent.trim();
-  console.log("Watching the clock. Current time is " + currentTime);
   if (isTimePastOrEqual(currentTime, "##SERVER_TIME##")) {
     window.observerFlag = true;
     window.currentTime = currentTime;
