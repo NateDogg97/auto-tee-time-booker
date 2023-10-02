@@ -1,7 +1,16 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import os
 import time
+
+
+def refresh_calendar(driver):
+    refresh_button = WebDriverWait(driver, 1).until(
+        EC.presence_of_element_located(
+            (By.XPATH, '//a[@title="Refresh" and @href="Member_select"]'))
+    )
+    refresh_button.click()
 
 
 def observe_clock_and_act(driver, server_time, date_xpath):
@@ -10,23 +19,18 @@ def observe_clock_and_act(driver, server_time, date_xpath):
 
     try:
         # Define a script to observe the element and set a flag when the condition is met
-        script = f"""
-        window.observerFlag = false;
-        let observedElement = document.querySelector('.jquery_server_clock');
-        console.log('Setting up observer for: ', observedElement);
-        
-        let observer = new MutationObserver((mutations) => {{
-            let currentTime = observedElement.textContent.trim();
-            console.log("Watching the clock. Current time is " + currentTime);
-            if (currentTime.startsWith('{server_time}')) {{
-                window.observerFlag = true;
-                observer.disconnect();
-            }}
-        }});
-        console.log(observer);
-        
-        observer.observe(observedElement, {{ childList: true }});
-        """
+        # Get the directory where the Python script is located
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        # Construct the path to the JavaScript file
+        js_file_path = os.path.join(
+            dir_path, 'JavaScript', 'mutation_observer.js')
+
+        with open(js_file_path, 'r') as file:
+            script_template = file.read()
+
+        # Replace the placeholder in the script template with the actual server_time
+        script = script_template.replace("##SERVER_TIME##", server_time)
 
         # Inject the script into the page
         driver.execute_script(script)
@@ -35,38 +39,38 @@ def observe_clock_and_act(driver, server_time, date_xpath):
         while True:
             if driver.execute_script("return window.observerFlag;"):
                 print(f"The server time {server_time} has been reached!")
+                currentTime = driver.execute_script(
+                    "return window.currentTime;")
 
                 try:
-                    refresh_button = driver.find_element(
-                        By.XPATH, '//a[@title="Refresh" and @href="Member_select"]')
-                    refresh_button.click()
-                    print(f"Page refreshed at {server_time}")
+                    refresh_calendar(driver)
+                    print(f"Calendar refreshed at {currentTime}")
 
                 except Exception as e:
-                    print(
-                        f"An error occurred while refreshing the page at {server_time}: {type(e).__name__}: {str(e)}")
+                    print(f"{type(e).__name__}: {str(e)}")
 
                 while True:
-                    date_button = driver.find_element(By.XPATH, date_xpath)
-
-                    if date_button:
+                    try:
+                        date_button = WebDriverWait(driver, 1).until(
+                            EC.presence_of_element_located(
+                                (By.XPATH, date_xpath))
+                        )
                         date_button.click()
-                        print(f"Date button clicked at {server_time}")
+                        print(f"Date button clicked at {currentTime}")
                         break  # Break out of the inner loop
 
-                    else:
+                    except Exception:
                         try:
-                            refresh_button.click()
-                            print(f"Page refreshed at {server_time}")
+                            refresh_calendar(driver)
+                            print(f"Page refreshed at {currentTime}")
                         except Exception as e:
-                            print(
-                                f"An error occurred while refreshing the page at {server_time}: {type(e).__name__}: {str(e)}")
+                            print(f"{type(e).__name__}: {str(e)}")
 
                         # Sleep for 1 second before the next refresh
                         time.sleep(1)
 
                     # Sleep for 2 seconds before the next refresh
-                    time.sleep(2)
+                    time.sleep(1)
 
                 break
 

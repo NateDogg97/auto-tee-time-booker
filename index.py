@@ -118,7 +118,7 @@ wait.until(EC.title_is("Welcome to ForeTees"))
 driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 
 try:
-    server_time = "4:10:00 PM"  # Testing
+    server_time = "4:34:00 PM"  # Testing
     observe_clock_and_act(driver, server_time, date_xpath)
 finally:
     print(f"Clicked Date: {date_xpath}")
