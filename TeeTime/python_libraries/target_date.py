@@ -20,9 +20,8 @@ def get_target_date_xpath(target_day=None, timezone_str="America/Chicago"):
         days_ahead = 7  # Default behavior
 
     target_date = today + timedelta(days=days_ahead)
-    day = target_date.day
-    month = target_date.month - 1  # Adjust month for zero-based index in HTML
-
-    date_xpath = f"//td[@data-month='{month}'][a[text()='{day}']]"
+    
+    # Adjust month for zero-based index in HTML
+    date_xpath = f"//td[@data-month='{target_date.month - 1}'][a[text()='{target_date.day}']]"
     return date_xpath
 

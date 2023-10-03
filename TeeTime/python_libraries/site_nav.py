@@ -3,7 +3,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-from python_libraries import *
+from python_libraries import (
+    course_config,
+    select_time,
+    site_nav,
+    target_date,
+    timeslot_selector,
+)
+import logging
 
 
 def check_driver_type(driver) -> bool:
@@ -21,7 +28,7 @@ def check_driver_type(driver) -> bool:
         return True
 
 
-def login(user):
+def login(user, driver):
     """
     Function that sends login information to the website. Login page must be opened already with selenium.
 
@@ -50,12 +57,15 @@ def book_onion_creek(site, user, driver, time_to_wait: int = 120):
         pass
     if not driver.get(site):
         pass
-    elif not login(user):
+    elif not login(user, driver):
         pass
     else:
         # Define variables
         slot_found = False
         start_clicking = False
+
+        # Get xpath
+        date_xpath = target_date.get_target_date_xpath()
 
         # set time to wait
         wait = WebDriverWait(driver, time_to_wait)
@@ -105,7 +115,7 @@ def book_onion_creek(site, user, driver, time_to_wait: int = 120):
         selected_course = None
 
         for course in user.preferred_courses:
-            if search_for_time_slot(course):
+            if timeslot_selector.search_for_time_slot(course):
                 selected_course = course
                 print(f"Selected course: {selected_course}")
                 # break
