@@ -56,13 +56,13 @@ current_user = User(user_name='PartlowS',
 date_xpath = get_target_date_xpath()
 
 # Set up the driver
-# chrome_options = Options()
-# chrome_options.add_argument("--headless")
-# chrome_options.add_argument("--window-size=1920x1080")
-# chrome_options.add_argument("--no-sandbox")
-# chrome_options.add_argument("--disable-dev-shm-usage")
-# driver = webdriver.Chrome(options=chrome_options)
-driver = webdriver.Chrome()
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--window-size=1920x1080")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(options=chrome_options)
+# driver = webdriver.Chrome()
 
 # Navigate to the login page
 driver.get('https://www.onioncreekclub.com/user/login')
@@ -113,16 +113,13 @@ wait.until(EC.title_is("Welcome to ForeTees"))
 driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 
 try:
-    server_time = "7:44:00 PM"  # Testing
+    server_time = "7:00:00 AM"  # Server Class?
     observe_clock_and_act(driver, server_time, date_xpath)
 finally:
     print(f"Clicked Date: {date_xpath}")
 
 slot_found = False
 start_clicking = False
-
-# This function contains your logic for locating the time slots.
-# It's separate so you can call it for both preferred and secondary courses.
 
 
 def search_for_time_slot(course_name, slots_available):
@@ -186,10 +183,10 @@ for course in current_user.preferred_courses:
         break
     else:  # This block executes if the loop completes without a break
         print(
-            f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows.")
+            f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows."
+            " Exiting...")
         logging.warning(
             f"No available slots found in either the '{current_user.preferred_courses[0]}' or '{current_user.preferred_courses[1]}' course rows.")
-        input("Press Return to exit...")
         exit(0)
 
 if current_user.multiple_courses > 1:
