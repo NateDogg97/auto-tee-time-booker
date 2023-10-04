@@ -234,7 +234,7 @@ if len(player_types) >= ((4 * current_user.multiple_courses) - 1):
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         logging.warning(
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
-        input("Ready to click Submit button")
+        # input("Ready to click Submit button")
         submit_button.click()
         exit(0)
     except TimeoutException:
