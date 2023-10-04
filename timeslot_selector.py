@@ -1,4 +1,3 @@
-# Define your preferences here
 PREFERENCES = {
     'primary_course': 'North',
     'secondary_course': 'Northback',
@@ -7,26 +6,30 @@ PREFERENCES = {
     'preferred_end_time': '08:29'
 }
 
+
 def select_timeslot(driver):
     start_time = PREFERENCES['preferred_start_time']
     end_time = PREFERENCES['preferred_end_time']
-    
-    while True:  
+
+    while True:
         # Check primary preference
-        slot = find_slot_on_course(driver, PREFERENCES['primary_course'], start_time, end_time)
+        slot = find_slot_on_course(
+            driver, PREFERENCES['primary_course'], start_time, end_time)
         if slot:
             return slot
 
         # Check secondary preference
-        slot = find_slot_on_course(driver, PREFERENCES['secondary_course'], start_time, end_time)
+        slot = find_slot_on_course(
+            driver, PREFERENCES['secondary_course'], start_time, end_time)
         if slot:
             return slot
 
         # Check tertiary preference
-        slot = find_slot_on_course(driver, PREFERENCES['tertiary_course'], start_time, end_time)
+        slot = find_slot_on_course(
+            driver, PREFERENCES['tertiary_course'], start_time, end_time)
         if slot:
             return slot
-        
+
         # If none of the preferred courses are found, choose the first available slot
         slot = find_first_available_slot(driver, start_time, end_time)
         if slot:
@@ -49,6 +52,7 @@ def increment_hour(time_str):
     hour += 1
     return f"{hour:02}:{minute:02}"
 
+
 def find_slot_on_course(driver, start_time, end_time):
     """
     This function finds the first available slot within the given time range.
@@ -56,6 +60,7 @@ def find_slot_on_course(driver, start_time, end_time):
     # Your logic here, which chooses the first available time slot within the time range
     # on the designated course
     pass
+
 
 def find_first_available_slot(driver, start_time, end_time):
     """
