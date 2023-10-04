@@ -55,10 +55,10 @@ def book_onion_creek(site, user, driver, time_to_wait: int = 120):
     # check driver type
     if not check_driver_type(driver):
         pass
-    if not driver.get(site):
+    elif not driver.get(site):
         pass
     elif not login(user, driver):
-        pass
+        pass # Error: user not found
     else:
         # Define variables
         slot_found = False
