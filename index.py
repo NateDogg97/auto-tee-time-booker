@@ -12,11 +12,12 @@ from target_date import get_target_date_xpath
 from select_time import convert_to_24_hour_format
 from course_config import get_multiple_courses
 from observe_clock import observe_clock_and_act
+from book_now import book_now
 import logging
 import time
 
 logging.basicConfig(
-    filename='teeTimeProject/logfile.log',
+    filename='auto-tee-time-booker/logfile.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -81,12 +82,8 @@ original_window = driver.current_window_handle
 # Debug: Log the original window title
 print(f"[DEBUG] Original window title: {driver.title}")
 
-# Find the button by its text and href pattern and click it
-button_to_click = wait.until(
-    EC.presence_of_element_located((By.XPATH,
-                                    "//a[contains(@href, '/user/')][contains(@href, '/foretees/login')][contains(text(), 'Book a Tee Time Now')]"))
-)
-button_to_click.click()
+# Handles the clicking of the 'Book a Tee Time' button. Handles the presence of Promo Modals
+book_now(driver)
 
 wait.until(EC.number_of_windows_to_be(2))
 
@@ -234,7 +231,9 @@ if len(player_types) >= ((4 * current_user.multiple_courses) - 1):
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         logging.warning(
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
-        # input("Ready to click Submit button")
+        ###################################################
+        # input("Ready to click Submit button")  # TESTING ##
+        ###################################################
         submit_button.click()
         exit(0)
     except TimeoutException:

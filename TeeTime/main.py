@@ -1,3 +1,9 @@
+import time
+import logging
+from python_libraries.site_nav import *
+from course_config import get_multiple_courses
+from select_time import convert_to_24_hour_format
+from target_date import get_target_date_xpath
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -11,12 +17,6 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 import sys
 sys.path.append()
-from target_date import get_target_date_xpath
-from select_time import convert_to_24_hour_format
-from course_config import get_multiple_courses
-from site_nav import *
-import logging
-import time
 
 logging.basicConfig(
     filename='teeTimeProject/logfile.log',
@@ -105,7 +105,8 @@ wait.until(EC.title_is("Member Identification"))
 
 # Wait for the button with the specified alt attribute and click it
 button_to_click = wait.until(
-    EC.presence_of_element_located((By.XPATH, f"//a[@alt='{current_user.user_alt_attribute}'][text()='{current_user.user_alt_attribute}']"))
+    EC.presence_of_element_located(
+        (By.XPATH, f"//a[@alt='{current_user.user_alt_attribute}'][text()='{current_user.user_alt_attribute}']"))
 )
 button_to_click.click()
 
@@ -144,9 +145,11 @@ def search_for_time_slot(course_name):
         try:
             # Extract the time slot from the <a> tag or the <div> tag
             try:
-                time_element = row.find_element(By.XPATH, ".//div[@class='sT rwdTd']/a")
+                time_element = row.find_element(
+                    By.XPATH, ".//div[@class='sT rwdTd']/a")
             except NoSuchElementException:
-                time_element = row.find_element(By.XPATH, ".//div[@class='sT rwdTd']/div[@class='time_slot']")
+                time_element = row.find_element(
+                    By.XPATH, ".//div[@class='sT rwdTd']/div[@class='time_slot']")
 
             time_text = convert_to_24_hour_format(time_element.text.strip())
 
@@ -154,7 +157,8 @@ def search_for_time_slot(course_name):
                 continue
 
             if multiple_courses > 1:
-                select_element = row.find_element(By.XPATH, ".//div[@class='sS rwdTd']/select")
+                select_element = row.find_element(
+                    By.XPATH, ".//div[@class='sS rwdTd']/select")
                 Select(select_element).select_by_value(str(multiple_courses))
                 WebDriverWait(driver, 10).until(EC.staleness_of(time_element))
                 return True  # Exit the loop as you've selected the required option and the page might have navigated
@@ -192,31 +196,37 @@ for course in current_user.preferred_courses:
 
 if multiple_courses > 1:
     continue_button = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//button[span[text()='Continue']]"))
+        EC.presence_of_element_located(
+            (By.XPATH, "//button[span[text()='Continue']]"))
     )
     continue_button.click()
 
 button_to_click = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.XPATH, "//a[@class='ftS-playerPrompt standard_button']"))
+    EC.presence_of_element_located(
+        (By.XPATH, "//a[@class='ftS-playerPrompt standard_button']"))
 )
 
 button_to_click = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.XPATH, "//div[@data-fttab='.ftMs-guestTbd']"))
+    EC.presence_of_element_located(
+        (By.XPATH, "//div[@data-fttab='.ftMs-guestTbd']"))
 )
 
 # Step 1: Locate the button you want to click three times
 button_to_click = WebDriverWait(driver, 10).until(
-    EC.presence_of_element_located((By.XPATH, "//div[contains(@class, 'ftMs-listItem')][span[text()='X']]"))
+    EC.presence_of_element_located(
+        (By.XPATH, "//div[contains(@class, 'ftMs-listItem')][span[text()='X']]"))
 )
 
-print(f'X button found. Attempting to click {((4 * multiple_courses) - 1)} times...')
+print(
+    f'X button found. Attempting to click {((4 * multiple_courses) - 1)} times...')
 
 # Step 2: Click it three times
 for _ in range((4 * multiple_courses) - 1):
     driver.execute_script("arguments[0].click();", button_to_click)
 
 # Step 3: Check for the existence of at least three <div class="playerType">X</div>
-player_types = driver.find_elements(By.XPATH, "//div[@class='playerType' and text()='X']")
+player_types = driver.find_elements(
+    By.XPATH, "//div[@class='playerType' and text()='X']")
 
 if len(player_types) >= ((4 * multiple_courses) - 1):
     # Step 4: If the check passes, locate the submit button and click it
@@ -225,15 +235,18 @@ if len(player_types) >= ((4 * multiple_courses) - 1):
             EC.presence_of_element_located(
                 (By.XPATH, "//a[@class='submit_request_button' and text()='Submit Request']"))
         )
-        print(f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
+        print(
+            f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         logging.warning(
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         input("Ready to click Submit button")
         submit_button.click()
         exit(0)
     except TimeoutException:
-        print(f"Could not locate Submit Button for the {time_text} time slot. Exiting...")
-        logging.warning(f"Could not locate Submit Button for the {time_text} time slot.")
+        print(
+            f"Could not locate Submit Button for the {time_text} time slot. Exiting...")
+        logging.warning(
+            f"Could not locate Submit Button for the {time_text} time slot.")
         exit(0)
     except Exception as e:
         print(e)
