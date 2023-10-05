@@ -37,9 +37,7 @@ def observe_clock_and_act(driver, server_time, date_xpath):
         driver.execute_script(script)
 
         # Poll until the flag is set
-        timeout = 3600
-        for i in range(timeout):
-            # Watching the DOM via javascript calls for a new day to appear in a calendar
+        while True:
             if driver.execute_script("return window.observerFlag;"):
                 print(f"The server time {server_time} has been reached!")
                 currentTime = driver.execute_script(
@@ -54,21 +52,24 @@ def observe_clock_and_act(driver, server_time, date_xpath):
                 except Exception as e:
                     print(f"{type(e).__name__}: {str(e)}")
 
-                while True:
-                    try:
-                        date_button = WebDriverWait(driver, 1).until(
-                            EC.presence_of_element_located(
-                                (By.XPATH, date_xpath))
-                        )
-                        date_button.click()
-                        print(f"Date button clicked at {currentTime}")
-                        break  # Break out of the inner loop
+            # Sleep for 1 second before the next check of server time
+            time.sleep(1)
 
-                    except TimeoutException:
-                        try:
-                            refresh_calendar(driver)
-                        except Exception as e:
-                            print(f"{type(e).__name__}: {str(e)}")
+            while True:
+                try:
+                    date_button = WebDriverWait(driver, 1).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, date_xpath))
+                    )
+                    date_button.click()
+                    print(f"Date button clicked at {currentTime}")
+                    break  # Break out of the inner loop
+
+                except TimeoutException:
+                    try:
+                        refresh_calendar(driver)
+                    except Exception as e:
+                        print(f"{type(e).__name__}: {str(e)}")
 
     except Exception as e:
         print(f"An error occurred: {e}")

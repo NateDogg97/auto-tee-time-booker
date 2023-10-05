@@ -17,7 +17,7 @@ import logging
 import time
 
 logging.basicConfig(
-    filename='auto-tee-time-booker/logfile.log',
+    filename='teeTimeProject/logfile.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
