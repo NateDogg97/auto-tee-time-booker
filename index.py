@@ -83,7 +83,7 @@ original_window = driver.current_window_handle
 print(f"[DEBUG] Original window title: {driver.title}")
 
 # Handles the clicking of the 'Book a Tee Time' button. Handles the presence of Promo Modals
-book_now(driver)
+book_now(driver, 120)
 
 wait.until(EC.number_of_windows_to_be(2))
 
@@ -231,9 +231,9 @@ if len(player_types) >= ((4 * current_user.multiple_courses) - 1):
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         logging.warning(
             f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
-        ###################################################
-        # input("Ready to click Submit button")  # TESTING ##
-        ###################################################
+        # ------------------------------------------------ #
+        # input("Ready to click Submit button")  # TESTING #
+        # ------------------------------------------------ #
         submit_button.click()
         exit(0)
     except TimeoutException:

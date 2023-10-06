@@ -15,6 +15,10 @@ def refresh_calendar(driver):
 
 
 def observe_clock_and_act(driver, server_time, date_xpath):
+    # Wait for the page to fully load
+    WebDriverWait(driver, 120).until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, ".jquery_server_clock")))
+
     print(
         f"observe_clock_and_click function is running. Waiting for the clock to reach {server_time}.")
 
@@ -55,21 +59,21 @@ def observe_clock_and_act(driver, server_time, date_xpath):
             # Sleep for 1 second before the next check of server time
             time.sleep(1)
 
-            while True:
-                try:
-                    date_button = WebDriverWait(driver, 1).until(
-                        EC.presence_of_element_located(
-                            (By.XPATH, date_xpath))
-                    )
-                    date_button.click()
-                    print(f"Date button clicked at {currentTime}")
-                    break  # Break out of the inner loop
+        while True:
+            try:
+                date_button = WebDriverWait(driver, 1).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, date_xpath))
+                )
+                date_button.click()
+                print(f"Date button clicked at {currentTime}")
+                break  # Break out of the inner loop
 
-                except TimeoutException:
-                    try:
-                        refresh_calendar(driver)
-                    except Exception as e:
-                        print(f"{type(e).__name__}: {str(e)}")
+            except TimeoutException:
+                try:
+                    refresh_calendar(driver)
+                except Exception as e:
+                    print(f"{type(e).__name__}: {str(e)}")
 
     except Exception as e:
         print(f"An error occurred: {e}")
