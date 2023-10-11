@@ -8,16 +8,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
-from target_date import get_target_date_xpath
-from select_time import convert_to_24_hour_format
+from time_utils import get_target_date_xpath
 from course_config import get_multiple_courses
 from observe_clock import observe_clock_and_act
+from timeslot_selector import search_for_time_slot
 from book_now import book_now
 import logging
 import time
 
 logging.basicConfig(
-    filename='teeTimeProject/logfile.log',
+    filename='auto-tee-time-booker/logfile.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
@@ -45,25 +45,25 @@ current_user = User(user_name='PartlowS',
                     user_alt_attribute='Scott Partlow',
                     preferred_timeslot='06:00',  # Earliest Avaiable
                     preferred_courses=['North', 'Original Front to North Front',
-                                       'Northback'],  # In Order - first gets priority
+                                       'Northback', '9 Hole Course'],  # In Order - first gets priority
                     slots_available=4,
                     multiple_courses=1)
 
-# -todo- Edit get_multiple_courses to handle different multiple course choices for different days
+# - TODO - Edit get_multiple_courses to handle different multiple course choices for different days
 # multiple_courses = get_multiple_courses()
 # multiple_courses = 1
 
-# -Optional- select a day to run the script on by typing a day (string) as a parameter for this function
-date_xpath = get_target_date_xpath()
+# - OPTIONAL - select a day to run the script on by typing a day (string) as a parameter for this function
+date_xpath = get_target_date_xpath('tuesday')
 
 # Set up the driver
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--window-size=1920x1080")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-driver = webdriver.Chrome(options=chrome_options)
-# driver = webdriver.Chrome()
+# chrome_options = Options()
+# chrome_options.add_argument("--headless")
+# chrome_options.add_argument("--window-size=1920x1080")
+# chrome_options.add_argument("--no-sandbox")
+# chrome_options.add_argument("--disable-dev-shm-usage")
+# driver = webdriver.Chrome(options=chrome_options)
+driver = webdriver.Chrome()
 
 # Navigate to the login page
 driver.get('https://www.onioncreekclub.com/user/login')
@@ -109,73 +109,26 @@ wait.until(EC.title_is("Welcome to ForeTees"))
 # Navigate to the 'Member_select' page
 driver.get('https://www1.foretees.com/v5/onioncreekclub_golf_m56/Member_select')
 
+# Observe the server clock until it hits a specific time, then refresh
+# the calendar until the desired date is able to be clicked
 try:
     server_time = "7:00:00 AM"  # Server Class?
     observe_clock_and_act(driver, server_time, date_xpath)
 finally:
     print(f"Clicked Date: {date_xpath}")
 
-slot_found = False
-start_clicking = False
-
-
-def search_for_time_slot(course_name, slots_available):
-    global start_clicking
-    global time_text
-
-    try:
-        rows = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located(
-                (By.XPATH, f"//div[contains(@class, 'rwdTr') and .//div[@class='sN rwdTd' and text()='{course_name}'] and .//div[contains(@class, 'slotCount') and number(translate(text(), translate(text(), '0123456789', ''), '')) >= {slots_available}]]"))
-        )
-    except TimeoutException:
-        print(f"No rows found for course: {course_name}")
-        return False
-
-    for row in rows:
-        try:
-            # Extract the time slot from the <a> tag or the <div> tag
-            try:
-                time_element = row.find_element(
-                    By.XPATH, ".//div[@class='sT rwdTd']/a")
-            except NoSuchElementException:
-                time_element = row.find_element(
-                    By.XPATH, ".//div[@class='sT rwdTd']/div[@class='time_slot']")
-
-            time_text = convert_to_24_hour_format(time_element.text.strip())
-
-            if time_text < current_user.preferred_timeslot:
-                continue
-
-            if current_user.multiple_courses > 1:
-                select_element = row.find_element(
-                    By.XPATH, ".//div[@class='sS rwdTd']/select")
-                Select(select_element).select_by_value(
-                    str(current_user.multiple_courses))
-                WebDriverWait(driver, 10).until(EC.staleness_of(time_element))
-                return True  # Exit the loop as you've selected the required option and the page might have navigated
-            elif isinstance(time_element,
-                            webdriver.remote.webelement.WebElement) and "teetime_button" in time_element.get_attribute(
-                    "class"):
-                time_element.click()
-                return True  # Slot was found and clicked
-
-        except NoSuchElementException as e:
-            print(e)
-            continue
-        except StaleElementReferenceException:
-            # Handle the stale element exception, you can log it or wait and then continue
-            time.sleep(2)  # Wait for a short period before retrying
-            continue
-
-    return False
-
+# Using the preference course and timeslot of the current_user,
+# search for the first available time slot
 
 selected_course = None
+selected_time = None
 
 for course in current_user.preferred_courses:
-    if search_for_time_slot(course, current_user.slots_available):
+    slot_found, time_of_slot = search_for_time_slot(
+        driver, course, current_user)
+    if slot_found:
         selected_course = course
+        selected_time = time_of_slot
         print(f'Selected course: {selected_course}')
         break
     else:  # This block executes if the loop completes without a break
@@ -228,19 +181,19 @@ if len(player_types) >= ((4 * current_user.multiple_courses) - 1):
                 (By.XPATH, "//a[@class='submit_request_button' and text()='Submit Request']"))
         )
         print(
-            f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
+            f"Successfully Booked the {selected_time} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         logging.warning(
-            f"Successfully Booked the {time_text} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
+            f"Successfully Booked the {selected_time} time slot at the {selected_course} course for {current_user.user_alt_attribute}")
         # ------------------------------------------------ #
-        # input("Ready to click Submit button")  # TESTING #
+        input("Ready to click Submit button")  # TESTING #
         # ------------------------------------------------ #
         submit_button.click()
         exit(0)
     except TimeoutException:
         print(
-            f"Could not locate Submit Button for the {time_text} time slot. Exiting...")
+            f"Could not locate Submit Button for the {selected_time} time slot. Exiting...")
         logging.warning(
-            f"Could not locate Submit Button for the {time_text} time slot.")
+            f"Could not locate Submit Button for the {selected_time} time slot.")
         exit(0)
     except Exception as e:
         print(e)
