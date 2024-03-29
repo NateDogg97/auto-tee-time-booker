@@ -1,27 +1,38 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import StaleElementReferenceException
-from time_utils import get_target_date_xpath
-from course_config import get_multiple_courses
-from observe_clock import observe_clock_and_act
-from timeslot_selector import search_for_time_slot
-from book_now import book_now
-import logging
 import time
+import logging
+from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from book_now import book_now
+from timeslot_selector import search_for_time_slot
+from observe_clock import observe_clock_and_act
+from course_config import get_multiple_courses
+from time_utils import get_target_date_xpath
+from decouple import config
 
-logging.basicConfig(
-    filename='auto-tee-time-booker/logfile.log',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+testing = True
+
+if testing:
+    logging.basicConfig(
+        filename='../logfile.log',
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+else:
+    logging.basicConfig(
+        filename='teeTimeProject/logfile.log',
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
 
 # Mute unnecessary loggers
 logging.getLogger().setLevel(logging.WARNING)
@@ -40,9 +51,9 @@ class User:
         self.multiple_courses = multiple_courses
 
 
-current_user = User(user_name='PartlowS',
-                    user_password='xfu*fyb6RBC_cyx8mcg',
-                    user_alt_attribute='Scott Partlow',
+current_user = User(user_name=config('USER_NAME'),
+                    user_password=config('USER_PASSWORD'),
+                    user_alt_attribute=config('USER_ALT'),
                     preferred_timeslot='06:00',  # Earliest Avaiable
                     preferred_courses=['North', 'Original Front to North Front',
                                        'Northback', '9 Hole Course'],  # In Order - first gets priority
@@ -57,13 +68,15 @@ current_user = User(user_name='PartlowS',
 date_xpath = get_target_date_xpath('tuesday')
 
 # Set up the driver
-# chrome_options = Options()
-# chrome_options.add_argument("--headless")
-# chrome_options.add_argument("--window-size=1920x1080")
-# chrome_options.add_argument("--no-sandbox")
-# chrome_options.add_argument("--disable-dev-shm-usage")
-# driver = webdriver.Chrome(options=chrome_options)
-driver = webdriver.Chrome()
+if testing:
+    driver = webdriver.Chrome()
+else:
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--window-size=1920x1080")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(options=chrome_options)
 
 # Navigate to the login page
 driver.get('https://www.onioncreekclub.com/user/login')
