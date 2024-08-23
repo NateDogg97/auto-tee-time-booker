@@ -42,9 +42,9 @@ class User:
         self.date_xpath = date_xpath
 
 
-current_user = User(user_name='PartlowS',
-                    user_password='xfu*fyb6RBC_cyx8mcg',
-                    user_alt_attribute='Scott Partlow',
+current_user = User(user_name=USER_NAME,
+                    user_password=USER_PASS,
+                    user_alt_attribute=USER_ALT,
                     preferred_timeslot='06:00',
                     preferred_courses=['North', 'Original Front to North Front',
                                        'Northback'])  # In Order - first gets priority !important
