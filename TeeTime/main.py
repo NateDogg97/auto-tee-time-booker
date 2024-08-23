@@ -49,10 +49,10 @@ current_user = User(user_name=USER_NAME,
                     preferred_courses=['North', 'Original Front to North Front',
                                        'Northback'])  # In Order - first gets priority !important
 
-# Configuration variables user_name = 'PartlowS'
-# user_password = 'xfu*fyb6RBC_cyx8mcg'
-# user_alt_attribute = 'Scott
-# Partlow' preferred_timeslot = '06:00'  # First Available
+# Configuration variables user_name = USER_NAME
+# user_password = USER_PASS
+# user_alt_attribute = USER_ALT
+# preferred_timeslot = '06:00'  # First Available
 # preferred_courses = ['North', 'Original Front to North
 # Front', 'Northback']  # In Order - first gets priority !important
 
